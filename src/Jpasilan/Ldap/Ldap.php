@@ -79,9 +79,9 @@ class Ldap
      * @param boolean $is_user
      * @return bool
      */
-    public function bind($dn, $password, $is_user = true)
+    public function bind($dn = '', $password = '', $is_user = true)
     {
-        $dn = $is_user ? $this->setUserDn($dn) : $dn;
+        $dn = $is_user && !empty($dn) ? $this->setUserDn($dn) : $dn;
 
         $bind = (!empty($dn) && !empty($password))
             ? ldap_bind($this->conn, $dn, $password)
@@ -125,7 +125,7 @@ class Ldap
      * @param $attribute
      * @return mixed
      */
-    public function get($attribute)
+    public function getAttribute($attribute)
     {
         $value = null;
 
