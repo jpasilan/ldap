@@ -1,11 +1,13 @@
 <?php namespace Jpasilan\Ldap;
 
+use Illuminate\Support\Facades\Config;
+
 class Ldap
 {
     /**
      * Stores the LDAP configuration values.
      *
-     * @var config
+     * @var $config
      */
     protected $config;
 
@@ -27,19 +29,26 @@ class Ldap
     /**
      * Class constructor and initializes an LDAP connection.
      *
-     * @param array $config
      * @throws \Exception
      */
-    public function __construct($config)
+    public function __construct()
     {
-        $this->config = $config;
+        $pkg_config = \Config::get('ldap::default');
+
+        if (!empty($pkg_config['host'])) {
+            // Assign from the package configuration.
+            $this->config = $pkg_config;
+        } else {
+            // Assign from the App configuration.
+            $this->config = \Config::get('ldap');
+        }
 
         // Checks first whether the PHP LDAP extension is installed in the server.
         if (!function_exists('ldap_connect')) {
             throw new \Exception('Requires the php-ldap extension to be installed.');
         }
 
-        $this->conn = ldap_connect($config['host'], $config['port']);
+        $this->conn = ldap_connect($this->config['host'], $this->config['port']);
         ldap_set_option($this->conn, LDAP_OPT_PROTOCOL_VERSION, 3);
     }
 
@@ -75,6 +84,8 @@ class Ldap
 
     /**
      * Bind using the admin credentials from configuration.
+     *
+     * @return bool
      */
     public function bindWithAdmin()
     {
@@ -93,8 +104,8 @@ class Ldap
 
         if (!empty($filter)) {
             $filter = "($filter)";
-            $result = @ldap_search($this->conn, $this->setUserDn(), $filter, $this->config['read_attributes']);
-            $entries = @ldap_get_entries($this->conn, $result);
+            $result = ldap_search($this->conn, $this->setUserDn(), $filter, $this->config['read_attributes']);
+            $entries = ldap_get_entries($this->conn, $result);
         }
 
         $this->ldapEntries = $entries;

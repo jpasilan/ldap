@@ -1,7 +1,6 @@
 <?php namespace Jpasilan\Ldap;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Foundation\AliasLoader;
 
 class LdapServiceProvider extends ServiceProvider {
 
@@ -29,13 +28,8 @@ class LdapServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
-        $this->app['ldap'] = $this->app->share(function($app){
-            return new Ldap($app['config']->get('ldap'));
-        });
-
-        $this->app->booting(function(){
-            $loader = AliasLoader::getInstance();
-            $loader->alias('Ldap', 'Jpasilan\Ldap\Facades\Ldap');
+        $this->app['ldap'] = $this->app->share(function(){
+            return new Ldap();
         });
 	}
 
