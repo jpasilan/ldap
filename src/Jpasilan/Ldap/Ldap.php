@@ -19,7 +19,7 @@ class Ldap
     protected $conn;
 
     /**
-     * Stores the LDAP entries from Ldap::search()
+     * Stores the LDAP entries from ldap_get_entries().
      *
      * @var $ldap_entries
      */
@@ -27,7 +27,7 @@ class Ldap
 
 
     /**
-     * Class constructor and initializes an LDAP connection.
+     * Class constructor and initiates an LDAP connection.
      *
      * @throws \Exception
      */
@@ -51,19 +51,24 @@ class Ldap
             throw new \Exception('Requires the php-ldap extension to be installed.');
         }
 
+        // Initiate an LDAP connection and set the necessary option.
         $this->conn = ldap_connect($this->config['host'], $this->config['port']);
         ldap_set_option($this->conn, LDAP_OPT_PROTOCOL_VERSION, 3);
     }
 
     /**
-     * Unset the class variables on object destruction.
+     * Unset the class variables and close connection on object destruction.
      */
     public function __destruct()
     {
+        // Unset the class properties.
         $this->config = null;
         $this->ldap_entries = array();
 
-        ldap_close($this->conn);
+        // Close LDAP connection.
+        if ($this->conn) {
+            ldap_close($this->conn);
+        }
     }
 
     /**
@@ -120,7 +125,7 @@ class Ldap
      * @param $attribute
      * @return mixed
      */
-    public function getAttribute($attribute)
+    public function get($attribute)
     {
         $value = null;
 
@@ -132,7 +137,7 @@ class Ldap
     }
 
     /**
-     * Abstracts the ldap_mod_replace function.
+     * Wrapper function of ldap_mod_replace().
      *
      * @param string $dn
      * @param array $attribute
