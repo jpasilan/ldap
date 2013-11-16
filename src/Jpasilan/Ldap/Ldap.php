@@ -21,9 +21,9 @@ class Ldap
     /**
      * Stores the LDAP entries from Ldap::search()
      *
-     * @var $ldapEntries
+     * @var $ldap_entries
      */
-    protected $ldapEntries = array();
+    protected $ldap_entries = array();
 
 
     /**
@@ -33,14 +33,17 @@ class Ldap
      */
     public function __construct()
     {
-        $pkg_config = \Config::get('ldap::default');
+        // Get the package configuration
+        $this->config = \Config::get('ldap::default');
 
-        if (!empty($pkg_config['host'])) {
-            // Assign from the package configuration.
-            $this->config = $pkg_config;
-        } else {
-            // Assign from the App configuration.
+        if (empty($this->config['host'])) {
+            // Otherwise, retrieve it from the app configuration.
             $this->config = \Config::get('ldap');
+        }
+
+        // Check if at least the host and port values are set. Otherwise, throw an exception.
+        if (empty($this->config['host']) || empty($this->conig['port'])) {
+            throw new \Exception('Host and port values are not set. Check either the application or package config file.');
         }
 
         // Checks first whether the PHP LDAP extension is installed in the server.
@@ -58,13 +61,13 @@ class Ldap
     public function __destruct()
     {
         $this->config = null;
-        $this->ldapEntries = array();
+        $this->ldap_entries = array();
 
         ldap_close($this->conn);
     }
 
     /**
-     * Abstracts the ldap_bind() function. Returns a boolean value that determines whether bind is successful.
+     * Wrapper function of the ldap_bind(). Returns a boolean value that determines whether bind is successful.
      *
      * @param string $dn
      * @param string $password
@@ -93,10 +96,10 @@ class Ldap
     }
 
     /**
-     * Abstracts the ldap_search() function. Returns the array retrieved from ldap_get_entries().
+     * Wrapper function of ldap_search(). Returns the array retrieved from ldap_get_entries().
      *
      * @param $filter
-     * @return array
+     * @return void
      */
     public function search($filter)
     {
@@ -108,21 +111,21 @@ class Ldap
             $entries = ldap_get_entries($this->conn, $result);
         }
 
-        $this->ldapEntries = $entries;
+        $this->ldap_entries = $entries;
     }
 
     /**
      * Get an attribute from an LDAP entry.
      *
      * @param $attribute
-     * @return string
+     * @return mixed
      */
     public function getAttribute($attribute)
     {
         $value = null;
 
-        if (!empty($attribute) && isset($this->ldapEntries[0][$attribute][0])) {
-            $value = $this->ldapEntries[0][$attribute][0];
+        if (!empty($attribute) && isset($this->ldap_entries[0][$attribute][0])) {
+            $value = $this->ldap_entries[0][$attribute][0];
         }
 
         return $value;
@@ -150,9 +153,9 @@ class Ldap
     public function changePassword($dn, $password)
     {
         // Encode the password according to LDAP specs.
-        $newPassword = "{SHA}" . base64_encode(pack("H*", sha1($password)));
+        $new_password = "{SHA}" . base64_encode(pack("H*", sha1($password)));
 
-        return $this->replace($dn, array('userPassword' => $newPassword));
+        return $this->replace($dn, array('userPassword' => $new_password));
     }
 
     /**
