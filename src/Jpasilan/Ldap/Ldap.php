@@ -42,7 +42,7 @@ class Ldap
         }
 
         // Check if at least the host and port values are set. Otherwise, throw an exception.
-        if (empty($this->config['host']) || empty($this->conig['port'])) {
+        if (empty($this->config['host']) || empty($this->config['port'])) {
             throw new \Exception('Host and port values are not set. Check either the application or package config file.');
         }
 
