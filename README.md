@@ -1,4 +1,4 @@
-Ldap
+Laravel LDAP
 ====
 
 LDAP package for Laravel 4. This package serves as a wrapper of PHP's common ldap functions and currently 
